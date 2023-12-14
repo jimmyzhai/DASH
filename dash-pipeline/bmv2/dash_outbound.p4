@@ -19,10 +19,10 @@ control outbound(inout headers_t hdr,
                                      dash_routing_type_t routing_type,
 
                                      /* keys for routing */
-                                     dash_oid_t pipeline_oid,
-                                     dash_oid_t mapping_oid,
-                                     dash_oid_t tcpportmap_oid,
-                                     dash_oid_t udpportmap_oid,
+                                     @SaiVal[type="sai_object_id_t"] dash_oid_t pipeline_oid,
+                                     @SaiVal[type="sai_object_id_t"] dash_oid_t mapping_oid,
+                                     @SaiVal[type="sai_object_id_t"] dash_oid_t tcpportmap_oid,
+                                     @SaiVal[type="sai_object_id_t"] dash_oid_t udpportmap_oid,
                                      bit<1> lookup_addr_is_v6,
                                      IPv4ORv6Address lookup_addr,
 
@@ -50,6 +50,7 @@ control outbound(inout headers_t hdr,
                                      EthernetAddress nat_dmac,
 
                                      /* params for routing action tunnel/staticencap */
+                                     @SaiVal[type="sai_dash_encapsulation_t", default_value="SAI_DASH_ENCAPSULATION_VXLAN"]
                                      dash_encapsulation_t tunnel_type,
                                      bit<24> tunnel_vni,
                                      IPv4Address     tunnel_sip,
@@ -107,12 +108,12 @@ control outbound(inout headers_t hdr,
         meta.tunnel_underlay1_id = tunnel_underlay1_id != 0 ? tunnel_underlay1_id : meta.tunnel_underlay1_id;
     }
 
-    @name("outbound_routing|dash_outbound_routing0")
+    @SaiTable[name = "outbound_routing", stage = "routing0", api = "dash_outbound_routing"]
     table routing0 {
         key = {
-            meta.pipeline_oid : exact @name("meta.pipeline_oid:pipeline_oid");
-            meta.pkt_meta.lookup_addr_is_v6 : exact @name("meta.pkt_meta.lookup_addr_is_v6.pkt_meta.lookup_addr_is_v6");
-            meta.pkt_meta.lookup_addr : lpm @name("meta.pkt_meta.lookup_addr.pkt_meta.lookup_addr");
+            meta.pipeline_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.pkt_meta.lookup_addr_is_v6 : exact;
+            meta.pkt_meta.lookup_addr : lpm;
         }
 
         actions = {
@@ -122,12 +123,12 @@ control outbound(inout headers_t hdr,
         const default_action = drop;
     }
 
-    @name("outbound_routing|dash_outbound_routing1")
+    @SaiTable[name = "outbound_routing", stage = "routing1", api = "dash_outbound_routing"]
     table routing1 {
         key = {
-            meta.pipeline_oid : exact @name("meta.pipeline_oid:pipeline_oid");
-            meta.pkt_meta.lookup_addr_is_v6 : exact @name("meta.pkt_meta.lookup_addr_is_v6.pkt_meta.lookup_addr_is_v6");
-            meta.pkt_meta.lookup_addr : lpm @name("meta.pkt_meta.lookup_addr.pkt_meta.lookup_addr");
+            meta.pipeline_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.pkt_meta.lookup_addr_is_v6 : exact;
+            meta.pkt_meta.lookup_addr : lpm;
         }
 
         actions = {
@@ -137,12 +138,12 @@ control outbound(inout headers_t hdr,
         const default_action = drop;
     }
 
-    @name("outbound_ipmapping|dash_outbound_ipmapping0")
+    @SaiTable[name = "outbound_ipmapping", stage = "ipmapping0", api = "dash_outbound_ipmapping"]
     table ipmapping0 {
         key = {
-            meta.mapping_oid : exact @name("meta.mapping_oid:mapping_oid");
-            meta.pkt_meta.lookup_addr_is_v6 : exact @name("meta.pkt_meta.lookup_addr_is_v6.pkt_meta.lookup_addr_is_v6");
-            meta.pkt_meta.lookup_addr : exact @name("meta.pkt_meta.lookup_addr.pkt_meta.lookup_addr");
+            meta.mapping_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.pkt_meta.lookup_addr_is_v6 : exact;
+            meta.pkt_meta.lookup_addr : exact;
         }
 
         actions = {
@@ -152,12 +153,12 @@ control outbound(inout headers_t hdr,
         const default_action = drop;
     }
 
-    @name("outbound_ipmapping|dash_outbound_ipmapping1")
+    @SaiTable[name = "outbound_ipmapping", stage = "ipmapping1", api = "dash_outbound_ipmapping"]
     table ipmapping1 {
         key = {
-            meta.mapping_oid : exact @name("meta.mapping_oid:mapping_oid");
-            meta.pkt_meta.lookup_addr_is_v6 : exact @name("meta.pkt_meta.lookup_addr_is_v6.pkt_meta.lookup_addr_is_v6");
-            meta.pkt_meta.lookup_addr : exact @name("meta.pkt_meta.lookup_addr.pkt_meta.lookup_addr");
+            meta.mapping_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.pkt_meta.lookup_addr_is_v6 : exact;
+            meta.pkt_meta.lookup_addr : exact;
         }
 
         actions = {
@@ -167,12 +168,12 @@ control outbound(inout headers_t hdr,
         const default_action = drop;
     }
 
-    @name("outbound_tcpportmapping|dash_outbound_tcpportmapping")
+    @SaiTable[name = "outbound_tcpportmapping", api = "dash_outbound_tcpportmapping"]
     table tcpportmapping {
         key = {
-            meta.tcpportmap_oid : exact @name("meta.tcpportmap_oid:tcpportmap_oid");
-            meta.flow.sport : range @name("meta.flow.sport.flow.sport");
-            meta.flow.dport : range @name("meta.flow.dport.flow.dport");
+            meta.tcpportmap_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.flow.sport : range;
+            meta.flow.dport : range;
         }
 
         actions = {
@@ -182,12 +183,12 @@ control outbound(inout headers_t hdr,
         const default_action = drop;
     }
 
-    @name("outbound_udpportmapping|dash_outbound_udpportmapping")
+    @SaiTable[name = "outbound_udpportmapping", api = "dash_outbound_udppportmapping"]
     table udpportmapping {
         key = {
-            meta.udpportmap_oid : exact @name("meta.udpportmap_oid:udpportmap_oid");
-            meta.flow.sport : range @name("meta.flow.sport.flow.sport");
-            meta.flow.dport : range @name("meta.flow.dport.flow.dport");
+            meta.udpportmap_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.flow.sport : range;
+            meta.flow.dport : range;
         }
 
         actions = {

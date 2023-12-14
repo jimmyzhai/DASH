@@ -19,9 +19,10 @@ control action_tunnel(inout headers_t hdr, inout metadata_t meta)
         meta.tunnel_0.tunnel_dmac = tunnel_dmac != 0 ? tunnel_dmac : meta.tunnel_0.tunnel_dmac;
     }
 
+    @SaiTable[name = "tunnel", api = "dash_tunnel"]
     table tunnel_underlay0 {
         key = {
-            meta.tunnel_underlay0_id : exact @name("meta.tunnel_underlay0_id:tunnel_underlay0_id");
+            meta.tunnel_underlay0_id : exact;
         }
 
         actions = {
@@ -42,9 +43,10 @@ control action_tunnel(inout headers_t hdr, inout metadata_t meta)
         meta.tunnel_0.tunnel_dmac = tunnel_dmac != 0 ? tunnel_dmac : meta.tunnel_0.tunnel_dmac;
     }
 
+    @SaiTable[name = "tunnel", api = "dash_tunnel"]
     table tunnel_underlay1 {
         key = {
-            meta.tunnel_underlay1_id : exact @name("meta.tunnel_underlay1_id:tunnel_underlay1_id");
+            meta.tunnel_underlay1_id : exact;
         }
 
         actions = {

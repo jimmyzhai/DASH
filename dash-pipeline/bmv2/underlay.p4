@@ -68,11 +68,10 @@ control underlay(
 #endif // TARGET_DPDK_PNA
     }
 
-    @name("route|route")
-    // TODO: To add structural annotations (example: @Sai[skipHeaderGen=true])
+    @SaiTable[name = "route", api = "route", api_type="underlay"]
     table underlay_routing {
         key = {
-            meta.flow.dip : lpm @name("meta.flow.dip:destination");
+            meta.flow.dip : lpm @SaiVal[name = "destination"];
         }
 
         actions = {
