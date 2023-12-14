@@ -17,55 +17,62 @@ control outbound(inout headers_t hdr,
 
     action outbound_metadata_publish(dash_match_stage_t next_stage,
                                      dash_routing_type_t routing_type,
+
+                                     /* keys for routing */
                                      dash_oid_t pipeline_oid,
                                      dash_oid_t mapping_oid,
                                      dash_oid_t tcpportmap_oid,
                                      dash_oid_t udpportmap_oid,
                                      bit<1> lookup_addr_is_v6,
                                      IPv4ORv6Address lookup_addr,
-                                     dash_tunnel_target_t tunnel_source,
-                                     dash_tunnel_target_t tunnel_target,
-                                     dash_tunnel_id_t tunnel_underlay0_id,
-                                     dash_tunnel_id_t tunnel_underlay1_id,
-                                     bit<16> nat_sport,
-                                     bit<16> nat_dport,
-                                     bit<16> nat_sport_base,
-                                     bit<16> nat_dport_base,
+
+                                     /* params for routing action 4to6 */
                                      bit<128> sip_4to6_encoding_value,
                                      bit<128> sip_4to6_encoding_mask,
                                      bit<128> dip_4to6_encoding_value,
                                      bit<128> dip_4to6_encoding_mask,
+
+                                     /* params for routing action 6to4 */
                                      bit<32> sip_6to4_encoding_value,
                                      bit<32> sip_6to4_encoding_mask,
                                      bit<32> dip_6to4_encoding_value,
                                      bit<32> dip_6to4_encoding_mask,
+
+                                     /* params for routing action nat */
                                      bit<1> is_nat_ip_v6,
                                      IPv4ORv6Address nat_sip,
                                      IPv4ORv6Address nat_dip,
+                                     bit<16> nat_sport,
+                                     bit<16> nat_dport,
+                                     bit<16> nat_sport_base,
+                                     bit<16> nat_dport_base,
                                      EthernetAddress nat_smac,
                                      EthernetAddress nat_dmac,
+
+                                     /* params for routing action tunnel/staticencap */
                                      dash_encapsulation_t tunnel_type,
-                                     bit<24> encap_vni,
+                                     bit<24> tunnel_vni,
                                      IPv4Address     tunnel_sip,
                                      IPv4Address     tunnel_dip,
                                      EthernetAddress tunnel_smac,
-                                     EthernetAddress tunnel_dmac
+                                     EthernetAddress tunnel_dmac,
+
+                                     /* params for routing action tunnel_from_encap */
+                                     dash_tunnel_target_t tunnel_source,
+                                     dash_tunnel_target_t tunnel_target,
+                                     dash_tunnel_id_t tunnel_underlay0_id,
+                                     dash_tunnel_id_t tunnel_underlay1_id
                                     ) {
-        meta.transit_to = next_stage;
-        meta.routing_type = meta.routing_type | routing_type;
+        meta.routing.transit_to = next_stage;
+        meta.routing.type = meta.routing.type | routing_type;
 
         meta.pipeline_oid = pipeline_oid != 0 ? pipeline_oid : meta.pipeline_oid;
         meta.mapping_oid = mapping_oid != 0 ? mapping_oid : meta.mapping_oid;
         meta.tcpportmap_oid = tcpportmap_oid != 0 ? tcpportmap_oid : meta.tcpportmap_oid;
         meta.udpportmap_oid = udpportmap_oid != 0 ? udpportmap_oid : meta.udpportmap_oid;
 
-        meta.pkt_meta.lookup_addr = lookup_addr != 0 ? lookup_addr : meta.pkt_meta.lookup_addr;
         meta.pkt_meta.lookup_addr_is_v6 = lookup_addr_is_v6 != 0 ? lookup_addr_is_v6 : meta.pkt_meta.lookup_addr_is_v6;
-
-        meta.tunnel_source = tunnel_source != 0 ? tunnel_source : meta.tunnel_source;
-        meta.tunnel_target = tunnel_target != 0 ? tunnel_target : meta.tunnel_target;
-        meta.tunnel_underlay0_id = tunnel_underlay0_id != 0 ? tunnel_underlay0_id : meta.tunnel_underlay0_id;
-        meta.tunnel_underlay1_id = tunnel_underlay1_id != 0 ? tunnel_underlay1_id : meta.tunnel_underlay1_id;
+        meta.pkt_meta.lookup_addr = lookup_addr != 0 ? lookup_addr : meta.pkt_meta.lookup_addr;
 
         meta.sip_4to6_encoding_value = (meta.sip_4to6_encoding_value & ~sip_4to6_encoding_mask) | sip_4to6_encoding_value;
         meta.sip_4to6_encoding_mask = meta.sip_4to6_encoding_mask | sip_4to6_encoding_mask;
@@ -77,24 +84,27 @@ control outbound(inout headers_t hdr,
         meta.dip_6to4_encoding_value = (meta.dip_6to4_encoding_value & ~dip_6to4_encoding_mask) | dip_6to4_encoding_value;
         meta.dip_6to4_encoding_mask = meta.dip_6to4_encoding_mask | dip_6to4_encoding_mask;
 
+        meta.nat.is_ipv6 = is_nat_ip_v6 != 0 ? is_nat_ip_v6 : meta.nat.is_ipv6;
+        meta.nat.nat_sip = nat_sip != 0 ? nat_sip : meta.nat.nat_sip;
+        meta.nat.nat_dip = nat_dip != 0 ? nat_dip : meta.nat.nat_dip;
         meta.nat.nat_sport = nat_sport != 0 ? nat_sport : meta.nat.nat_sport;
         meta.nat.nat_dport = nat_dport != 0 ? nat_dport : meta.nat.nat_dport;
         meta.nat.nat_sport_base = nat_sport_base != 0 ? nat_sport_base : meta.nat.nat_sport_base;
         meta.nat.nat_dport_base = nat_dport_base != 0 ? nat_dport_base : meta.nat.nat_dport_base;
-
-        meta.nat.is_ipv6 = is_nat_ip_v6 != 0 ? is_nat_ip_v6 : meta.nat.is_ipv6;
-        meta.nat.nat_sip = nat_sip != 0 ? nat_sip : meta.nat.nat_sip;
-        meta.nat.nat_dip = nat_dip != 0 ? nat_dip : meta.nat.nat_dip;
         meta.nat.nat_smac = nat_smac != 0 ? nat_smac : meta.nat.nat_smac;
         meta.nat.nat_dmac = nat_dmac != 0 ? nat_dmac : meta.nat.nat_dmac;
 
         meta.tunnel_0.tunnel_type = tunnel_type != 0 ? tunnel_type : meta.tunnel_0.tunnel_type;
-        meta.tunnel_0.tunnel_vni = encap_vni != 0 ? encap_vni : meta.tunnel_0.tunnel_vni;
-
+        meta.tunnel_0.tunnel_vni = tunnel_vni != 0 ? tunnel_vni : meta.tunnel_0.tunnel_vni;
         meta.tunnel_0.tunnel_sip = tunnel_sip != 0 ? tunnel_sip : meta.tunnel_0.tunnel_sip;
         meta.tunnel_0.tunnel_dip = tunnel_dip != 0 ? tunnel_dip : meta.tunnel_0.tunnel_dip;
         meta.tunnel_0.tunnel_smac = tunnel_smac != 0 ? tunnel_smac : meta.tunnel_0.tunnel_smac;
         meta.tunnel_0.tunnel_dmac = tunnel_dmac != 0 ? tunnel_dmac : meta.tunnel_0.tunnel_dmac;
+
+        meta.tunnel_source = tunnel_source != 0 ? tunnel_source : meta.tunnel_source;
+        meta.tunnel_target = tunnel_target != 0 ? tunnel_target : meta.tunnel_target;
+        meta.tunnel_underlay0_id = tunnel_underlay0_id != 0 ? tunnel_underlay0_id : meta.tunnel_underlay0_id;
+        meta.tunnel_underlay1_id = tunnel_underlay1_id != 0 ? tunnel_underlay1_id : meta.tunnel_underlay1_id;
     }
 
     @name("outbound_routing|dash_outbound_routing0")
@@ -209,7 +219,7 @@ control outbound(inout headers_t hdr,
         ConntrackIn.apply(hdr, meta);
 #endif // PNA_CONNTRACK
 
-        meta.transit_to = dash_match_stage_t.MATCH_START;
+        meta.routing.transit_to = dash_match_stage_t.MATCH_START;
         //TODO: temporary, should be generic per object model
         meta.pkt_meta.use_src = false;
         meta.pkt_meta.lookup_addr_is_v6 = meta.flow.is_ipv6;
@@ -220,7 +230,7 @@ control outbound(inout headers_t hdr,
         }
 
 #define DO_MATCH_ROUTING(n) \
-        if (meta.transit_to == dash_match_stage_t.MATCH_ROUTING##n) {  \
+        if (meta.routing.transit_to == dash_match_stage_t.MATCH_ROUTING##n) {  \
             routing##n.apply();  \
         }
 
@@ -228,47 +238,47 @@ control outbound(inout headers_t hdr,
         DO_MATCH_ROUTING(1)
 
 #define DO_MATCH_IPMAPPING(n) \
-        if (meta.transit_to == dash_match_stage_t.MATCH_IPMAPPING##n) {  \
+        if (meta.routing.transit_to == dash_match_stage_t.MATCH_IPMAPPING##n) {  \
             ipmapping##n.apply();  \
         }
 
         DO_MATCH_IPMAPPING(0)
         DO_MATCH_IPMAPPING(1)
 
-        if (meta.transit_to == dash_match_stage_t.MATCH_TCPPORTMAPPING) {
+        if (meta.routing.transit_to == dash_match_stage_t.MATCH_TCPPORTMAPPING) {
             tcpportmapping.apply();
-        } else if (meta.transit_to == dash_match_stage_t.MATCH_UDPPORTMAPPING) {
+        } else if (meta.routing.transit_to == dash_match_stage_t.MATCH_UDPPORTMAPPING) {
             udpportmapping.apply();
         }
 
         // Apply route actions
         // FIXME: action order ??
         // tcp/udp -- overlay_ip -- overlay_ether -- underlay .... ??
-        if ((meta.routing_type & ACTION_STATICENCAP) != 0) {
+        if ((meta.routing.type & ACTION_STATICENCAP) != 0) {
             action_staticencap.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_TUNNEL) != 0) {
+        if ((meta.routing.type & ACTION_TUNNEL) != 0) {
             action_tunnel.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_REVERSE_TUNNEL) != 0) {
+        if ((meta.routing.type & ACTION_REVERSE_TUNNEL) != 0) {
             action_reverse_tunnel.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_TUNNEL_FROM_ENCAP) != 0) {
+        if ((meta.routing.type & ACTION_TUNNEL_FROM_ENCAP) != 0) {
             action_tunnel_from_encap.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_4to6) != 0) {
+        if ((meta.routing.type & ACTION_4to6) != 0) {
             action_4to6.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_6to4) != 0) {
+        if ((meta.routing.type & ACTION_6to4) != 0) {
             action_6to4.apply(hdr, meta);
         }
 
-        if ((meta.routing_type & ACTION_NAT) != 0) {
+        if ((meta.routing.type & ACTION_NAT) != 0) {
             action_nat.apply(hdr, meta);
         }
     }

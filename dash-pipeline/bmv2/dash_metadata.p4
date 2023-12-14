@@ -96,13 +96,17 @@ struct dash_nat_t {
     EthernetAddress nat_dmac;
 }
 
+struct dash_routing_t {
+    dash_routing_type_t type;
+    dash_match_stage_t transit_to;
+}
+
 struct metadata_t {
     pkt_metadata_t pkt_meta;
     dash_flow_t flow;
     dash_nat_t nat;
     dash_tunnel_t tunnel_0;
     dash_tunnel_t tunnel_1;
-
     dash_eni_t eni;
 
     conntrack_data_t conntrack_data;
@@ -120,8 +124,7 @@ struct metadata_t {
     bit<16> meter_class;
     bit<32> meter_bucket_index;
 
-    dash_routing_type_t routing_type;
-    dash_match_stage_t transit_to;
+    dash_routing_t routing;
     dash_oid_t mapping_oid;
     dash_oid_t pipeline_oid;
     dash_oid_t tcpportmap_oid;
