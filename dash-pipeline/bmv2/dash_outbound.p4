@@ -19,10 +19,10 @@ control outbound(inout headers_t hdr,
                                      dash_routing_type_t routing_type,
 
                                      /* keys for routing */
-                                     @SaiVal[type="sai_object_id_t"] dash_oid_t pipeline_oid,
-                                     @SaiVal[type="sai_object_id_t"] dash_oid_t mapping_oid,
-                                     @SaiVal[type="sai_object_id_t"] dash_oid_t tcpportmap_oid,
-                                     @SaiVal[type="sai_object_id_t"] dash_oid_t udpportmap_oid,
+                                     @SaiVal[type="sai_object_id_t"] dash_oid_t eni_id,
+                                     @SaiVal[type="sai_uint32_t", objects = "OUTBOUND_IPMAPPING_ENTRY"] dash_oid_t mapping_id,
+                                     @SaiVal[type="sai_uint32_t", objects = "OUTBOUND_TCPPORTMAPPING_ENTRY"] dash_oid_t tcpportmap_id,
+                                     @SaiVal[type="sai_uint32_t", objects = "OUTBOUND_UDPPORTMAPPING_ENTRY"] dash_oid_t udpportmap_id,
                                      bit<1> lookup_addr_is_v6,
                                      IPv4ORv6Address lookup_addr,
 
@@ -50,7 +50,7 @@ control outbound(inout headers_t hdr,
                                      EthernetAddress nat_dmac,
 
                                      /* params for routing action tunnel/staticencap */
-                                     @SaiVal[type="sai_dash_encapsulation_t", default_value="SAI_DASH_ENCAPSULATION_VXLAN"]
+                                     @SaiVal[name="dash_encapsulation", type="sai_dash_encapsulation_t", default_value="SAI_DASH_ENCAPSULATION_VXLAN"]
                                      dash_encapsulation_t tunnel_type,
                                      bit<24> tunnel_vni,
                                      IPv4Address     tunnel_sip,
@@ -67,10 +67,10 @@ control outbound(inout headers_t hdr,
         meta.routing.transit_to = next_stage;
         meta.routing.type = meta.routing.type | routing_type;
 
-        meta.pipeline_oid = pipeline_oid != 0 ? pipeline_oid : meta.pipeline_oid;
-        meta.mapping_oid = mapping_oid != 0 ? mapping_oid : meta.mapping_oid;
-        meta.tcpportmap_oid = tcpportmap_oid != 0 ? tcpportmap_oid : meta.tcpportmap_oid;
-        meta.udpportmap_oid = udpportmap_oid != 0 ? udpportmap_oid : meta.udpportmap_oid;
+        meta.eni_id = eni_id != 0 ? eni_id : meta.eni_id;
+        meta.mapping_id = mapping_id != 0 ? mapping_id : meta.mapping_id;
+        meta.tcpportmap_id = tcpportmap_id != 0 ? tcpportmap_id : meta.tcpportmap_id;
+        meta.udpportmap_id = udpportmap_id != 0 ? udpportmap_id : meta.udpportmap_id;
 
         meta.pkt_meta.lookup_addr_is_v6 = lookup_addr_is_v6 != 0 ? lookup_addr_is_v6 : meta.pkt_meta.lookup_addr_is_v6;
         meta.pkt_meta.lookup_addr = lookup_addr != 0 ? lookup_addr : meta.pkt_meta.lookup_addr;
@@ -111,7 +111,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_routing", stage = "routing0", api = "dash_outbound_routing"]
     table routing0 {
         key = {
-            meta.pipeline_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.eni_id : exact @SaiVal[type = "sai_object_id_t"];
             meta.pkt_meta.lookup_addr_is_v6 : exact;
             meta.pkt_meta.lookup_addr : lpm;
         }
@@ -126,7 +126,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_routing", stage = "routing1", api = "dash_outbound_routing"]
     table routing1 {
         key = {
-            meta.pipeline_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.eni_id : exact @SaiVal[type = "sai_object_id_t"];
             meta.pkt_meta.lookup_addr_is_v6 : exact;
             meta.pkt_meta.lookup_addr : lpm;
         }
@@ -141,7 +141,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_ipmapping", stage = "ipmapping0", api = "dash_outbound_ipmapping"]
     table ipmapping0 {
         key = {
-            meta.mapping_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.mapping_id : exact @SaiVal[type = "sai_uint32_t", objects = "OUTBOUND_IPMAPPING_ENTRY"];
             meta.pkt_meta.lookup_addr_is_v6 : exact;
             meta.pkt_meta.lookup_addr : exact;
         }
@@ -156,7 +156,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_ipmapping", stage = "ipmapping1", api = "dash_outbound_ipmapping"]
     table ipmapping1 {
         key = {
-            meta.mapping_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.mapping_id : exact @SaiVal[type = "sai_uint32_t", objects = "OUTBOUND_IPMAPPING_ENTRY"];
             meta.pkt_meta.lookup_addr_is_v6 : exact;
             meta.pkt_meta.lookup_addr : exact;
         }
@@ -171,7 +171,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_tcpportmapping", api = "dash_outbound_tcpportmapping"]
     table tcpportmapping {
         key = {
-            meta.tcpportmap_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.tcpportmap_id : exact @SaiVal[type = "sai_uint32_t", objects = "OUTBOUND_TCPPORTMAPPING_ENTRY"];
             meta.flow.sport : range;
             meta.flow.dport : range;
         }
@@ -186,7 +186,7 @@ control outbound(inout headers_t hdr,
     @SaiTable[name = "outbound_udpportmapping", api = "dash_outbound_udppportmapping"]
     table udpportmapping {
         key = {
-            meta.udpportmap_oid : exact @SaiVal[type = "sai_object_id_t"];
+            meta.udpportmap_id : exact @SaiVal[type = "sai_uint32_t", objects = "OUTBOUND_UDPPORTMAPPING_ENTRY"];
             meta.flow.sport : range;
             meta.flow.dport : range;
         }
@@ -220,7 +220,7 @@ control outbound(inout headers_t hdr,
         ConntrackIn.apply(hdr, meta);
 #endif // PNA_CONNTRACK
 
-        meta.routing.transit_to = dash_match_stage_t.MATCH_START;
+        meta.routing.transit_to = dash_match_stage_t.MATCH_ROUTING0;
         //TODO: temporary, should be generic per object model
         meta.pkt_meta.use_src = false;
         meta.pkt_meta.lookup_addr_is_v6 = meta.flow.is_ipv6;

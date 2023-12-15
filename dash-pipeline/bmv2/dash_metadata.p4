@@ -45,14 +45,12 @@ typedef bit<32> dash_routing_type_t;
 typedef bit<32> dash_oid_t;
 
 enum bit<8> dash_match_stage_t {
-    MATCH_END            = 0,
-    MATCH_START          = 1,
-    MATCH_ROUTING0       = 1,
-    MATCH_ROUTING1       = 2,
-    MATCH_IPMAPPING0     = 3,
-    MATCH_IPMAPPING1     = 4,
-    MATCH_TCPPORTMAPPING = 5,
-    MATCH_UDPPORTMAPPING = 6
+    MATCH_ROUTING0       = 0,
+    MATCH_ROUTING1       = 1,
+    MATCH_IPMAPPING0     = 2,
+    MATCH_IPMAPPING1     = 3,
+    MATCH_TCPPORTMAPPING = 4,
+    MATCH_UDPPORTMAPPING = 5
 }
 
 typedef bit<16> nexthop_t;
@@ -125,10 +123,10 @@ struct metadata_t {
     bit<32> meter_bucket_index;
 
     dash_routing_t routing;
-    dash_oid_t mapping_oid;
-    dash_oid_t pipeline_oid;
-    dash_oid_t tcpportmap_oid;
-    dash_oid_t udpportmap_oid;
+    dash_oid_t eni_id;
+    dash_oid_t mapping_id;
+    dash_oid_t tcpportmap_id;
+    dash_oid_t udpportmap_id;
 
     dash_tunnel_target_t tunnel_source;
     dash_tunnel_target_t tunnel_target;
