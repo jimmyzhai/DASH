@@ -6,3 +6,7 @@
 	path = test/SAI-Challenger
 	url = https://github.com/opencomputeproject/SAI-Challenger.git
 	branch = main
+[submodule "dash-pipeline/vpp-plugin"]
+	path = dash-pipeline/vpp-plugin
+	url = https://github.com/jimmyzhai/vpp-dash.git
+	branch = master
