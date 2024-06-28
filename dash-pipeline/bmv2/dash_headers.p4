@@ -6,6 +6,38 @@ typedef bit<32>  IPv4Address;
 typedef bit<128> IPv6Address;
 typedef bit<128> IPv4ORv6Address;
 
+enum bit<16> dash_direction_t {
+    INVALID = 0,
+    OUTBOUND = 1,
+    INBOUND = 2
+};
+
+typedef bit<32> dash_flow_action_t;
+typedef bit<32> dash_meter_class_t;
+
+enum bit<8> dash_packet_source_t {
+    EXTERNAL = 0,           // Packets from external sources.
+    PIPELINE = 1,           // Packets from P4 pipeline.
+    DPAPP = 2,              // Packets from data plane app.
+    PEER = 3                // Packets from the paired DPU.
+};
+
+enum bit<4> dash_packet_type_t {
+    REGULAR = 0,            // Regular packets from external sources.
+    FLOW_SYNC_REQ = 1,      // Flow sync request packet.
+    FLOW_SYNC_ACK = 2,      // Flow sync ack packet.
+    DP_PROBE_REQ = 3,       // Data plane probe packet.
+    DP_PROBE_ACK = 4        // Data plane probe ack packet.
+};
+
+// Packet operations for one kind of packet type
+enum bit<4> dash_packet_op_t {
+    NONE = 0,        // no op
+    FLOW_CREATE = 1, // New flow creation.
+    FLOW_UPDATE = 2, // Flow resimulation or any other reason causing existing flow to be updated.
+    FLOW_DELETE = 3  // Flow deletion.
+};
+
 header ethernet_t {
     EthernetAddress dst_addr;
     EthernetAddress src_addr;
@@ -93,7 +125,39 @@ header ipv6_t {
 
 const bit<16> IPV6_HDR_SIZE=320/8;
 
+
+header flow_key_t {
+    EthernetAddress eni_mac;
+    bit<8> ip_proto;
+    bit<16> vnet_id;
+    IPv4ORv6Address src_ip;
+    IPv4ORv6Address dst_ip;
+    bit<16> src_port;
+    bit<16> dst_port;
+}
+
+header flow_data_t {
+    bit<32> version;
+    dash_direction_t direction;
+    dash_flow_action_t actions;
+    dash_meter_class_t meter_class;
+}
+
+// dash packet metadata
+header pktmeta_t {
+    dash_packet_source_t packet_source;
+    dash_packet_type_t packet_type;
+    dash_packet_op_t packet_op;
+    bit<16>     length;
+}
+
 struct headers_t {
+    /* packet metadata headers */
+    ethernet_t   dp_ethernet;
+    pktmeta_t    pktmeta;
+    flow_key_t   flow_key;
+    flow_data_t  flow_data;
+
     /* Underlay 1 headers */
     ethernet_t    u1_ethernet;
     ipv4_t        u1_ipv4;

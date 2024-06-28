@@ -14,26 +14,6 @@ enum bit<32> dash_routing_actions_t {
     NAT_PORT = (1 << 4)
 };
 
-enum bit<16> dash_direction_t {
-    INVALID = 0,
-    OUTBOUND = 1,
-    INBOUND = 2
-};
-
-enum bit<8> dash_packet_source_t {
-    EXTERNAL = 0,           // Packets from external sources.
-    DPAPP = 1,              // Packets from data plane app.
-    PEER = 2                // Packets from the paired DPU.
-};
-
-enum bit<8> dash_packet_type_t {
-    REGULAR = 0,            // Regular packets from external sources.
-    FLOW_SYNC_REQ = 1,      // Flow sync request packet.
-    FLOW_SYNC_ACK = 2,      // Flow sync ack packet.
-    DP_PROBE_REQ = 3,       // Data plane probe packet.
-    DP_PROBE_ACK = 4        // Data plane probe ack packet.
-};
-
 // Pipeline stages:
 enum bit<16> dash_pipeline_stage_t {
     INVALID = 0,
@@ -121,13 +101,6 @@ enum bit<8> dash_ha_flow_sync_state_t {
     FLOW_SYNCED = 2,                // Flow has been synched to its peer
     FLOW_PENDING_DELETE = 3,        // Flow is pending deletion, waiting for ack
     FLOW_PENDING_RESIMULATION = 4   // Flow is marked as pending resimulation
-};
-
-// HA flow sync operations
-enum bit<8> dash_ha_flow_sync_op_t {
-    FLOW_CREATE = 0, // New flow creation.
-    FLOW_UPDATE = 1, // Flow resimulation or any other reason causing existing flow to be updated.
-    FLOW_DELETE = 2  // Flow deletion.
 };
 
 struct ha_data_t {

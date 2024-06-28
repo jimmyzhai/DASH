@@ -15,6 +15,7 @@ error {
 #define NVGRE_PROTO 0x2f
 #define IPV4_ETHTYPE 0x0800
 #define IPV6_ETHTYPE 0x86dd
+#define DASH_ETHTYPE 0x876d
 
 parser dash_parser(
     packet_in packet
@@ -33,8 +34,15 @@ parser dash_parser(
         transition select(hd.u0_ethernet.ether_type) {
             IPV4_ETHTYPE:  parse_u0_ipv4;
             IPV6_ETHTYPE:  parse_u0_ipv6;
+            DASH_ETHTYPE:  parse_dash;
             default: accept;
         }
+    }
+
+    state parse_dash {
+        packet.extract(hd.pktmeta);
+        // TODO extract flow_key in some cases
+        transition start;
     }
 
     state parse_u0_ipv4 {
@@ -138,7 +146,12 @@ control dash_deparser(
     )
 {
     apply {
-	packet.emit(hdr.u0_ethernet);
+        packet.emit(hdr.dp_ethernet);
+        packet.emit(hdr.pktmeta);
+        packet.emit(hdr.flow_key);
+        packet.emit(hdr.flow_data);
+
+        packet.emit(hdr.u0_ethernet);
         packet.emit(hdr.u0_ipv4);
         packet.emit(hdr.u0_ipv4options);
         packet.emit(hdr.u0_ipv6);
